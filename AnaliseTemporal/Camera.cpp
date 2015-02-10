@@ -129,15 +129,15 @@ int powerspectra(Mat in) {
 
 
 	// converter as coordenadas de cartezianas para polares
-	cv::Mat magnitude, angle;
+	vector<float> magnitude, angle;
 	cv::cartToPolar(x, y, magnitude, angle);
 
 	//arredonda o valor do raio para um numero inteiro
 	//std::cout << "\nmagnitude: " << magnitude;
 	//std::round(magnitude.t());
 
-	for (int r = 0; r <= in.cols / 2; r++){
-		if (r == round(magnitude.at[r])){
+	for (int r = 0; r <= ((in.cols) / 2); r++){
+		if (r == round(magnitude.at(r))){
 			//guardo a posicao do vetor magnitude
 		}
 	}
