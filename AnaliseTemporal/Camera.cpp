@@ -95,8 +95,28 @@ int turnIntoSquareImage(String filename) {
 		imwrite("frame.bmp", imgPanel);
 	}
 
+	waitKey();
+
 	return 0;
 }
+
+static void meshgrid(const cv::Mat &xgv, const cv::Mat &ygv,
+	cv::Mat &X, cv::Mat &Y)
+{
+	cv::repeat(xgv.reshape(1, 1), ygv.total(), 1, X);
+	cv::repeat(ygv.reshape(1, 1).t(), 1, xgv.total(), Y);
+}
+
+// helper function (maybe that goes somehow easier)
+static void meshgridTest(const cv::Range &xgv, const cv::Range &ygv,
+	cv::Mat &X, cv::Mat &Y)
+{
+	std::vector<int> t_x, t_y;
+	for (int i = xgv.start; i <= xgv.end; i++) t_x.push_back(i);
+	for (int i = ygv.start; i <= ygv.end; i++) t_y.push_back(i);
+	meshgrid(cv::Mat(t_x), cv::Mat(t_y), X, Y);
+}
+
 
 int powerspectra(Mat in) {
 	Mat out;
@@ -112,35 +132,28 @@ int powerspectra(Mat in) {
 	imshow("square", in);
 
 	// meshgrid 
-	int imagesize = 6;
+	int imagesize = in.cols;
 	Mat x, y;
-	x.create(imagesize, imagesize, CV_32F);
-	y.create(imagesize, imagesize, CV_32F);
-
-	for (int i = 0; i < imagesize; i++) {
-		x.at<float>(0, i) = -.5 + (float)i / imagesize;
-		y.at<float>(i, 0) = -.5 + (float)i / imagesize;
-	}
-	x = repeat(x.row(0), imagesize, 1);
-	y = repeat(y.col(0), 1, imagesize);
-
+	meshgridTest(cv::Range(-imagesize / 2, imagesize / (2 - 1)), cv::Range(-imagesize / 2, imagesize / (2 - 1)), x, y);
+	
 	// ver valores de x e y para ver se estamos a fazer bem
-	/*for (int i = 0; i<imagesize; i++)
-	for (int j = 0; j < imagesize; j++) {
-		cout << "value: " << x.at<float>(i, j);
-	}*/
+	/*std::cerr << x << std::endl;
+	std::cerr << y << std::endl;*/
+
+	Mat x2, y2;
+	x.convertTo(x2, CV_32F);
+	y.convertTo(y2, CV_32F);
 
 	// converter as coordenadas de cartezianas para polares
-	Mat magnitude, angle;
-	cv::cartToPolar(x, y, magnitude, angle);
+	Mat rho, theta;
 
-	for (int i = 0; i<magnitude.rows; i++)
-	for (int j = 0; j < magnitude.cols; j++) {
-		magnitude.at<float>(i, j) = cvRound(magnitude.at<float>(i, j));
+	cv::cartToPolar(x2, y2, rho, theta);
+
+	for (int i = 0; i < rho.rows; i++)
+	for (int j = 0; j < rho.cols; j++) {
+		rho.at<float>(i, j) = cvRound(rho.at<float>(i, j));
 		}
-
-
-		
+	
 	return 0;
 }
 
