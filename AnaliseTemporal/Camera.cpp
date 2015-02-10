@@ -81,7 +81,7 @@ int turnIntoSquareImage(String filename) {
 		int dif_sides = max_side - min_side;
 		Mat imgPanelRoi(imgPanel, Rect(dif_sides / 2, 0, I.cols, I.rows));
 		I.copyTo(imgPanelRoi);
-		imshow("Squared Image - vertical", imgPanel);
+		//imshow("Squared Image - vertical", imgPanel);
 		imwrite("frame.bmp", imgPanel);
 	}
 	else{
@@ -91,7 +91,7 @@ int turnIntoSquareImage(String filename) {
 		int dif_sides = max_side - min_side;
 		Mat imgPanelRoi(imgPanel, Rect(0, dif_sides/2, I.cols, I.rows));
 		I.copyTo(imgPanelRoi);
-		imshow("Squared Image - horizontal", imgPanel);
+		//imshow("Squared Image - horizontal", imgPanel);
 		imwrite("frame.bmp", imgPanel);
 	}
 
@@ -102,6 +102,7 @@ int turnIntoSquareImage(String filename) {
 
 int powerspectra(Mat in) {
 	Mat out;
+	float value;
 	float blue = 0.0f, green = 0.0f, red = 0.0f;
 	cout << "Size " << in.cols << "x" << in.rows;
 	for (int i = 0; i<in.rows; i++)
@@ -113,10 +114,13 @@ int powerspectra(Mat in) {
 
 		out.at<cv::Vec3b>(i, j)[0] = blue*blue;
 		out.at<cv::Vec3b>(i, j)[1] = green*green;
-		out.at<cv::Vec3b>(i, j)[2] = red*red;	*/
+		out.at<cv::Vec3b>(i, j)[2] = red*red;*/
+
+		value = in.at<float>(i, j);	
+		in.at<float>(i, j) = value*value;
 	}
 
-	//imshow("square", out);
+	imshow("square", in);
 
 	//tamanho da imagem
 	return 0;
