@@ -101,40 +101,35 @@ int turnIntoSquareImage(String filename) {
 }
 
 int powerspectra(Mat in) {
-	Mat out;
+	// usando a pow
+	/*Mat out;
+	cv::pow(in,2,out);
+	imshow("pow", out);*/
+	
 	float value;
-	float blue = 0.0f, green = 0.0f, red = 0.0f;
-	cout << "Size " << in.cols << "x" << in.rows;
+
 	for (int i = 0; i<in.rows; i++)
 	for (int j = 0; j < in.cols; j++) {
 		// calcular o quadrado de cada pixel
-		/*blue = in.at<cv::Vec3b>(i, j)[0];
-		green = in.at<cv::Vec3b>(i, j)[1];
-		red = in.at<cv::Vec3b>(i, j)[2];
-
-		out.at<cv::Vec3b>(i, j)[0] = blue*blue;
-		out.at<cv::Vec3b>(i, j)[1] = green*green;
-		out.at<cv::Vec3b>(i, j)[2] = red*red;*/
-
 		value = in.at<float>(i, j);	
 		in.at<float>(i, j) = value*value;
-
-		int imagesize = in.cols;
-		Mat x, y;
-		x.create(imagesize, imagesize, CV_32F);
-		y.create(imagesize, imagesize, CV_32F);
-
-		for (int i = 0; i < imagesize; i++) {
-			x.at<float>(0, i) = -.5 + (float)i / imagesize;
-			y.at<float>(i, 0) = -.5 + (float)i / imagesize;
-		}
-		x = repeat(x.row(0), imagesize, 1);
-		y = repeat(y.col(0), 1, imagesize);
 	}
 
 	imshow("square", in);
 
-	//tamanho da imagem
+	// meshgrid 
+	int imagesize = in.cols;
+	Mat x, y;
+	x.create(imagesize, imagesize, CV_32F);
+	y.create(imagesize, imagesize, CV_32F);
+
+	for (int i = 0; i < imagesize; i++) {
+	x.at<float>(0, i) = -.5 + (float)i / imagesize;
+	y.at<float>(i, 0) = -.5 + (float)i / imagesize;
+	}
+	x = repeat(x.row(0), imagesize, 1);
+	y = repeat(y.col(0), 1, imagesize);
+
 	return 0;
 }
 
