@@ -95,16 +95,13 @@ int turnIntoSquareImage(String filename) {
 		imwrite("frame.bmp", imgPanel);
 	}
 
-	waitKey();
-
 	return 0;
 }
 
 int powerspectra(Mat in) {
 	Mat out;
 	float value;
-	float blue = 0.0f, green = 0.0f, red = 0.0f;
-	cout << "Size " << in.cols << "x" << in.rows;
+
 	for (int i = 0; i<in.rows; i++)
 	for (int j = 0; j < in.cols; j++) {
 		// calcular o quadrado de cada pixel
@@ -115,7 +112,7 @@ int powerspectra(Mat in) {
 	imshow("square", in);
 
 	// meshgrid 
-	int imagesize = in.cols;
+	int imagesize = 6;
 	Mat x, y;
 	x.create(imagesize, imagesize, CV_32F);
 	y.create(imagesize, imagesize, CV_32F);
@@ -127,26 +124,28 @@ int powerspectra(Mat in) {
 	x = repeat(x.row(0), imagesize, 1);
 	y = repeat(y.col(0), 1, imagesize);
 
+	// ver valores de x e y para ver se estamos a fazer bem
+	/*for (int i = 0; i<imagesize; i++)
+	for (int j = 0; j < imagesize; j++) {
+		cout << "value: " << x.at<float>(i, j);
+	}*/
 
 	// converter as coordenadas de cartezianas para polares
-	vector<float> magnitude, angle;
+	Mat magnitude, angle;
 	cv::cartToPolar(x, y, magnitude, angle);
 
-	//arredonda o valor do raio para um numero inteiro
-	//std::cout << "\nmagnitude: " << magnitude;
-	//std::round(magnitude.t());
-
-	for (int r = 0; r <= ((in.cols) / 2); r++){
-		if (r == round(magnitude.at(r))){
-			//guardo a posicao do vetor magnitude
+	for (int i = 0; i<magnitude.rows; i++)
+	for (int j = 0; j < magnitude.cols; j++) {
+		magnitude.at<float>(i, j) = cvRound(magnitude.at<float>(i, j));
 		}
-	}
 
+
+		
 	return 0;
 }
 
 int captureVideo() {
-	VideoCapture stream1(0);   //0 is the id of video device.0 if you have only one camera.
+	VideoCapture stream1("videos/approaching_lv_40ms_translate_approach.avi");   //0 is the id of video device.0 if you have only one camera.
 
 	if (!stream1.isOpened()) { //check if video device has been initialised
 		cout << "cannot open camera";
