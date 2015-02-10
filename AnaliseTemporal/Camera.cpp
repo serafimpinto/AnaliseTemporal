@@ -118,6 +118,18 @@ int powerspectra(Mat in) {
 
 		value = in.at<float>(i, j);	
 		in.at<float>(i, j) = value*value;
+
+		int imagesize = in.cols;
+		Mat x, y;
+		x.create(imagesize, imagesize, CV_32F);
+		y.create(imagesize, imagesize, CV_32F);
+
+		for (int i = 0; i < imagesize; i++) {
+			x.at<float>(0, i) = -.5 + (float)i / imagesize;
+			y.at<float>(i, 0) = -.5 + (float)i / imagesize;
+		}
+		x = repeat(x.row(0), imagesize, 1);
+		y = repeat(y.col(0), 1, imagesize);
 	}
 
 	imshow("square", in);
