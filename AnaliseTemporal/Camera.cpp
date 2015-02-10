@@ -127,6 +127,16 @@ int powerspectra(Mat in) {
 	x = repeat(x.row(0), imagesize, 1);
 	y = repeat(y.col(0), 1, imagesize);
 
+
+	// converter as coordenadas de cartezianas para polares
+	cv::Mat magnitude, angle;
+	cv::cartToPolar(x, y, magnitude, angle);
+
+	//arredonda o valor do raio para um numero inteiro
+	std::cout << "\nmagnitude: " << magnitude.t();
+	//std::round(magnitude.t());
+
+
 	return 0;
 }
 
