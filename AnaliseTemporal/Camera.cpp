@@ -119,9 +119,8 @@ static void meshgridTest(const cv::Range &xgv, const cv::Range &ygv,
 
 
 int powerspectra(Mat in) {
-	Mat out;
 	float value;
-
+	Mat dftSquare;
 	for (int i = 0; i<in.rows; i++)
 	for (int j = 0; j < in.cols; j++) {
 		// calcular o quadrado de cada pixel
@@ -129,7 +128,7 @@ int powerspectra(Mat in) {
 		in.at<float>(i, j) = value*value;
 	}
 
-	imshow("square", in);
+	imshow("dft square", in);
 
 	// meshgrid 
 	int imagesize = in.cols;
@@ -152,8 +151,29 @@ int powerspectra(Mat in) {
 	for (int i = 0; i < rho.rows; i++)
 	for (int j = 0; j < rho.cols; j++) {
 		rho.at<float>(i, j) = cvRound(rho.at<float>(i, j));
+	}
+
+	//intervalo [1:(M/2)+1]
+	int intervaloR = (imagesize/2) + 1;
+	float r = 0;
+	std::vector<float> myArray;
+	for (int i = 0; i < rho.rows; i++)
+	for (int j = 0; j < rho.cols; j++) {
+		r = rho.at<float>(i, j);
+		if ( (r >= 1) && (r <= intervaloR)) {
+			if ( (i < in.cols) && (j < in.rows) ) {
+				in.at<float>(i, j) += r;
+				myArray.push_back(in.at<float>(i, j));
+			}
 		}
+	}
 	
+	/*// imprimir o vector
+	for (std::vector<float>::const_iterator i = myArray.begin(); i != myArray.end(); ++i)
+		std::cout << *i << ' ';*/
+
+	//média??
+
 	return 0;
 }
 
