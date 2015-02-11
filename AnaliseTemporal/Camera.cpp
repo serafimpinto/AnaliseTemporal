@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <iostream>
+#include "cvplot.h"
 
 using namespace cv;
 using namespace std;
@@ -117,10 +118,19 @@ static void meshgridTest(const cv::Range &xgv, const cv::Range &ygv,
 	meshgrid(cv::Mat(t_x), cv::Mat(t_y), X, Y);
 }
 
+float calcMedia(vector<float> valoresDFT) {
+	float sum = 0;
+	for (std::vector<float>::const_iterator i = valoresDFT.begin(); i != valoresDFT.end(); ++i) {
+		sum += *i;
+	}
+	sum = sum / (valoresDFT.size());
+	return sum;
+}
+
 
 int powerspectra(Mat in) {
 	float value;
-	Mat dftSquare;
+
 	for (int i = 0; i<in.rows; i++)
 	for (int j = 0; j < in.cols; j++) {
 		// calcular o quadrado de cada pixel
@@ -136,8 +146,8 @@ int powerspectra(Mat in) {
 	meshgridTest(cv::Range(-imagesize / 2, imagesize / (2 - 1)), cv::Range(-imagesize / 2, imagesize / (2 - 1)), x, y);
 	
 	// ver valores de x e y para ver se estamos a fazer bem
-	/*std::cerr << x << std::endl;
-	std::cerr << y << std::endl;*/
+	/*std::cerr << x << std::endl;*/
+	//std::cerr << in << std::endl;
 
 	Mat x2, y2;
 	x.convertTo(x2, CV_32F);
@@ -154,25 +164,47 @@ int powerspectra(Mat in) {
 	}
 
 	//intervalo [1:(M/2)+1]
-	int intervaloR = (imagesize/2) + 1;
-	float r = 0;
-	std::vector<float> myArray;
+	int intervaloR = imagesize/2;
+	/*float r = 0;
+	std::vector<float> myR;
 	for (int i = 0; i < rho.rows; i++)
 	for (int j = 0; j < rho.cols; j++) {
 		r = rho.at<float>(i, j);
-		if ( (r >= 1) && (r <= intervaloR)) {
-			if ( (i < in.cols) && (j < in.rows) ) {
-				in.at<float>(i, j) += r;
-				myArray.push_back(in.at<float>(i, j));
-			}
+		if ( (r > 0) && (r <= intervaloR)) {
+			if (!(find(myR.begin(), myR.end(), r) != myR.end()))
+				myR.push_back(r);
 		}
 	}
-	
+	*/
 	/*// imprimir o vector
-	for (std::vector<float>::const_iterator i = myArray.begin(); i != myArray.end(); ++i)
+	for (std::vector<float>::const_iterator i = myR.begin(); i != myR.end(); ++i)
 		std::cout << *i << ' ';*/
 
-	//média??
+	std::vector<float> medias;
+	for (int i = 1; i <= intervaloR; i++) {
+		std::vector<float> valoresDFT;
+		for (int j = 0; j < rho.rows; j++)
+		for (int k = 0; k < rho.cols; k++) {
+			if (i == rho.at<float>(j, k)){
+				if ((j < in.cols) && (k < in.rows)) {
+					valoresDFT.push_back(in.at<float>(k, j));
+				}
+			}
+		}
+		float media = calcMedia(valoresDFT);
+		medias.push_back(media);
+	}
+
+	/*
+	for (std::vector<float>::const_iterator i = myR.begin(); i != myR.end(); ++i)
+		std::cout << *i << ' ';*/
+	/*
+	for (std::vector<float>::const_iterator i = medias.begin(); i != medias.end(); ++i)
+		std::cout << *i << ' ';*/
+
+
+
+	
 
 	return 0;
 }
