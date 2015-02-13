@@ -5,12 +5,15 @@
 #include <stdio.h>
 #include <iostream>
 #include "cvplot.h"
+#include <fstream>
 
 using namespace cv;
 using namespace std;
 
-Mat discreteFourierTransform(String filename) {
-	Mat I = imread(filename, CV_LOAD_IMAGE_GRAYSCALE);
+vector<float> alphas;
+
+Mat discreteFourierTransform(Mat I) {
+
 	if (I.empty()) {
 		printf("imagem vazia");
 	}
@@ -60,16 +63,16 @@ Mat discreteFourierTransform(String filename) {
 	// viewable image form (float between values 0 and 1).
 
 	//imshow("Input Image", I);    // Show the result
-	imshow("spectrum magnitude", magI);
+	//imshow("spectrum magnitude", magI);
 
 	return magI;
 }
 
-int turnIntoSquareImage(String filename) {
-	Mat I = imread(filename, CV_LOAD_IMAGE_GRAYSCALE);
+Mat turnIntoSquareImage(Mat I) {
+
 	if (I.empty()) {
 		printf("imagem vazia");
-		return -1;
+		return I;
 	}
 
 	int max_side = 0;
@@ -83,7 +86,7 @@ int turnIntoSquareImage(String filename) {
 		Mat imgPanelRoi(imgPanel, Rect(dif_sides / 2, 0, I.cols, I.rows));
 		I.copyTo(imgPanelRoi);
 		//imshow("Squared Image - vertical", imgPanel);
-		imwrite("frame.bmp", imgPanel);
+		return imgPanel;
 	}
 	else{
 		max_side = I.cols;
@@ -93,12 +96,8 @@ int turnIntoSquareImage(String filename) {
 		Mat imgPanelRoi(imgPanel, Rect(0, dif_sides/2, I.cols, I.rows));
 		I.copyTo(imgPanelRoi);
 		//imshow("Squared Image - horizontal", imgPanel);
-		imwrite("frame.bmp", imgPanel);
+		return imgPanel;
 	}
-
-	waitKey();
-
-	return 0;
 }
 
 static void meshgrid(const cv::Mat &xgv, const cv::Mat &ygv,
@@ -138,16 +137,12 @@ int powerspectra(Mat in) {
 		in.at<float>(i, j) = value*value;
 	}
 
-	imshow("dft square", in);
+	//imshow("dft square", in);
 
 	// meshgrid 
 	int imagesize = in.cols;
 	Mat x, y;
 	meshgridTest(cv::Range(-imagesize / 2, imagesize / (2 - 1)), cv::Range(-imagesize / 2, imagesize / (2 - 1)), x, y);
-	
-	// ver valores de x e y para ver se estamos a fazer bem
-	/*std::cerr << x << std::endl;*/
-	//std::cerr << in << std::endl;
 
 	Mat x2, y2;
 	x.convertTo(x2, CV_32F);
@@ -162,25 +157,10 @@ int powerspectra(Mat in) {
 	for (int j = 0; j < rho.cols; j++) {
 		rho.at<float>(i, j) = cvRound(rho.at<float>(i, j));
 	}
-
-	//intervalo [1:(M/2)+1]
+	//intervalo [1:(M/2)]
 	int intervaloR = imagesize/2;
-	/*float r = 0;
-	std::vector<float> myR;
-	for (int i = 0; i < rho.rows; i++)
-	for (int j = 0; j < rho.cols; j++) {
-		r = rho.at<float>(i, j);
-		if ( (r > 0) && (r <= intervaloR)) {
-			if (!(find(myR.begin(), myR.end(), r) != myR.end()))
-				myR.push_back(r);
-		}
-	}
-	*/
-	/*// imprimir o vector
-	for (std::vector<float>::const_iterator i = myR.begin(); i != myR.end(); ++i)
-		std::cout << *i << ' ';*/
 
-	std::vector<float> medias;
+	vector<float> medias;
 	for (int i = 1; i <= intervaloR; i++) {
 		std::vector<float> valoresDFT;
 		for (int j = 0; j < rho.rows; j++)
@@ -195,22 +175,33 @@ int powerspectra(Mat in) {
 		medias.push_back(media);
 	}
 
-	/*
-	for (std::vector<float>::const_iterator i = myR.begin(); i != myR.end(); ++i)
+	// encontrar o alpha com a fitline
+	vector<Point2f> points;
+	for (int r = 1; r <= intervaloR; r++) {
+		Point2f p;
+		p.x = log(medias.at(r - 1));
+		p.y = log(r);
+		points.push_back(p);
+	}
+
+	Vec4f line;
+	fitLine(points, line, CV_DIST_L2, 0, 0.01, 0.01);
+
+	float alpha = line[1] / line[0];
+
+	printf("\nalpha %f", alpha);
+	alphas.push_back(alpha);
+
+	/*//imprimir o vector
+	for (std::vector<Point2f>::const_iterator i = points.begin(); i != points.end(); ++i)
 		std::cout << *i << ' ';*/
-	/*
-	for (std::vector<float>::const_iterator i = medias.begin(); i != medias.end(); ++i)
-		std::cout << *i << ' ';*/
-
-
-
-	
 
 	return 0;
 }
 
 int captureVideo() {
-	VideoCapture stream1("videos/approaching_lv_40ms_translate_approach.avi");   //0 is the id of video device.0 if you have only one camera.
+	VideoCapture stream1("videos/car2.avi");   //0 is the id of video device.0 if you have only one camera.
+	//VideoCapture stream1(0);   //0 is the id of video device.0 if you have only one camera.
 
 	if (!stream1.isOpened()) { //check if video device has been initialised
 		cout << "cannot open camera";
@@ -222,16 +213,23 @@ int captureVideo() {
 		stream1.read(cameraFrame);
 		if (!cameraFrame.empty()) {
 			imshow("cam", cameraFrame);
-			imwrite("frame.bmp",cameraFrame);
-
+			cvtColor(cameraFrame, cameraFrame, CV_BGR2GRAY);
 			//tornar a imagem quadrada adicionando pixeis pretos nas margens que forem necessarias
-			turnIntoSquareImage("frame.bmp");
+			cameraFrame = turnIntoSquareImage(cameraFrame);
 
-			Mat in = discreteFourierTransform("frame.bmp");
-			powerspectra(in);
+			cameraFrame = discreteFourierTransform(cameraFrame);
+
+			powerspectra(cameraFrame);
+
 			if (waitKey(30) >= 0)
 				break;
 		}
+		ofstream grafico;
+		grafico.open("grafico.txt");
+		for (int i = 1; i <= alphas.size(); i++) {
+			grafico << i << " " << alphas.at(i-1) << "\n";
+		}
+		grafico.close();
 	}
 	return 0;
 }
